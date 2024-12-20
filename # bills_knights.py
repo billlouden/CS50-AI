@@ -1,6 +1,7 @@
+# Puzzle.py
 # Python to solve knights vs knaves based on 4 puzzles (0 - 3)
 # Bill Louden
-
+# Logic.py given to class to solve this problem
 from logic import *
 
 AKnight = Symbol("A is a Knight")
@@ -16,6 +17,8 @@ CKnave = Symbol("C is a Knave")
 # Puzzle 0
 # A says "I am both a knight and a knave."
 # (A v B) ^ (A ^ B)
+# Statement implies that a knight woiuld not say both (NOT (A^B)
+# and knave would say both
 knowledge0 = And(
     And(Or(AKnave,AKnight),
     Not(And(AKnave,AKnight))),
