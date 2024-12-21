@@ -1,55 +1,88 @@
+# Python to solve knights vs knaves based on 4 puzzles (0 - 3)
+# Bill Louden
+
 from logic import *
 
-people = ["Gilderoy", "Pomona", "Minerva", "Horace"]
-houses = ["Gryffindor", "Hufflepuff", "Ravenclaw", "Slytherin"]
+AKnight = Symbol("A is a Knight")
+AKnave = Symbol("A is a Knave")
 
-symbols = []
+BKnight = Symbol("B is a Knight")
+BKnave = Symbol("B is a Knave")
 
-knowledge = And()
+CKnight = Symbol("C is a Knight")
+CKnave = Symbol("C is a Knave")
 
-for person in people:
-    for house in houses:
-        symbols.append(Symbol(f"{person}{house}"))
+# Puzzle 0
+# A says "I am both a knight and a knave."
+# (A v B) ^ (A ^ B)
+# Knight always tells true Knave could lie.
+# cannot be both. ergo False
+knowledge0 = And(
+    And(Or(AKnave,AKnight), Not(And(AKnave,AKnight))),
+    Implication(AKnave,Not(And(AKnight,AKnave))),
+    Implication(AKnight,(And(AKnight,AKnave)))
 
-# Each person belongs to a house.
-for person in people:
-    knowledge.add(Or(
-        Symbol(f"{person}Gryffindor"),
-        Symbol(f"{person}Hufflepuff"),
-        Symbol(f"{person}Ravenclaw"),
-        Symbol(f"{person}Slytherin")
-    ))
-
-# Only one house per person.
-for person in people:
-    for h1 in houses:
-        for h2 in houses:
-            if h1 != h2:
-                knowledge.add(
-                    Implication(Symbol(f"{person}{h1}"), Not(Symbol(f"{person}{h2}")))
-                )
-
-# Only one person per house.
-for house in houses:
-    for p1 in people:
-        for p2 in people:
-            if p1 != p2:
-                knowledge.add(
-                    Implication(Symbol(f"{p1}{house}"), Not(Symbol(f"{p2}{house}")))
-                )
-
-knowledge.add(
-    Or(Symbol("GilderoyGryffindor"), Symbol("GilderoyRavenclaw"))
 )
 
-knowledge.add(
-    Not(Symbol("PomonaSlytherin"))
+# Puzzle 1
+# A says "We are both knaves."
+# B says nothing.
+knowledge1 = And(
+    And(Or(AKnave,AKnight), Not(And(AKnave,AKnight))),
+    And(Or(BKnave,BKnight), Not(And(BKnave,BKnight))),
+    Implication(AKnave,Not(And(AKnave,BKnave))),
+    Implication(AKnight,(And(AKnave,BKnave)))
+
 )
 
-knowledge.add(
-    Symbol("MinervaGryffindor")
+# Puzzle 2
+# A says "We are the same kind."
+# B says "We are of different kinds."
+knowledge2 = And(
+    And(Or(AKnave,AKnight), Not(And(AKnave,AKnight))),
+    And(Or(BKnave,BKnight), Not(And(BKnave,BKnight))),
+    Implication(AKnight,Or(And(AKnave,BKnave),And(AKnight,BKnight))),
+    Implication(AKnave, Not(Or(And(AKnave,BKnave),And(AKnight,BKnight)))),
+    Implication(BKnight,Or(And(AKnave,BKnight),And(BKnave,AKnight))),
+    Implication(BKnave, Not(Or(And(AKnave,BKnight),And(BKnave,AKnight))))
 )
 
-for symbol in symbols:
-    if model_check(knowledge, symbol):
-        print(symbol)
+# Puzzle 3
+# A says either "I am a knight." or "I am a knave.", but you don't know which.
+# B says "A said 'I am a knave'."
+# B says "C is a knave."
+# C says "A is a knight."
+knowledge3 = And(
+    And(Or(AKnave,AKnight), Not(And(AKnave,AKnight))),
+    And(Or(BKnave,BKnight), Not(And(BKnave,BKnight))),
+    And(Or(CKnave,CKnight), Not(And(CKnave,CKnight))),
+    Implication(BKnave,Not(CKnave)),
+    Implication(BKnight,CKnave),
+    Implication(CKnave,Not(AKnight)),
+    Implication(CKnight,AKnight),
+    Implication(AKnave,Not(Or(AKnight,AKnave))),
+    Implication(AKnight,Or(AKnight,AKnave))
+
+)
+
+
+def main():
+    symbols = [AKnight, AKnave, BKnight, BKnave, CKnight, CKnave]
+    puzzles = [
+        ("Puzzle 0", knowledge0),
+        ("Puzzle 1", knowledge1),
+        ("Puzzle 2", knowledge2),
+        ("Puzzle 3", knowledge3)
+    ]
+    for puzzle, knowledge in puzzles:
+        print(puzzle)
+        if len(knowledge.conjuncts) == 0:
+            print("    Not yet implemented.")
+        else:
+            for symbol in symbols:
+                if model_check(knowledge, symbol):
+                    print(f"    {symbol}")
+
+
+if __name__ == "__main__":
+    main()
